@@ -49,5 +49,6 @@ add-param command        string
 add-param upcase-command string
 add-param multi-command  string
 add-param osc52          boolean
+add-param wl-copy        boolean
 
 "${TMUX_THUMBS_BINARY}" "${PARAMS[@]}" || true
