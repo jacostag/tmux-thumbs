@@ -217,7 +217,15 @@ fn main() {
       .collect::<Vec<_>>()
       .join("\n");
 
-    
+    if wl_copy {
+       let mut child = std::process::Command::new("wl-copy")
+         .stdin(std::process::Stdio::piped())
+         .spawn()
+         .expect("Failed to spawn wl-copy");
+
+       let mut stdin = child.stdin.take().expect("Failed to open stdin for wl-copy");
+       stdin.write_all(output.as_bytes()).expect("Failed to write to wl-copy");
+    }
 
     
     if let Some(target) = target {
