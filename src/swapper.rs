@@ -62,6 +62,7 @@ pub struct Swapper<'a> {
   upcase_command: String,
   multi_command: String,
   osc52: bool,
+  wl_copy: bool,
   active_pane_id: Option<String>,
   active_pane_height: Option<i32>,
   active_pane_scroll_position: Option<i32>,
@@ -79,6 +80,7 @@ impl<'a> Swapper<'a> {
     upcase_command: String,
     multi_command: String,
     osc52: bool,
+    wl_copy: bool,
   ) -> Swapper {
     let since_the_epoch = SystemTime::now()
       .duration_since(UNIX_EPOCH)
@@ -92,6 +94,7 @@ impl<'a> Swapper<'a> {
       upcase_command,
       multi_command,
       osc52,
+      wl_copy,
       active_pane_id: None,
       active_pane_height: None,
       active_pane_scroll_position: None,
@@ -170,6 +173,10 @@ impl<'a> Swapper<'a> {
             return vec![format!("--{}", name)];
           }
 
+          if name == "wl-copy" && value == "1" {
++            return vec!["--wl-copy".to_string()];
++          }
+
           let string_params = vec![
             "alphabet",
             "position",
@@ -214,13 +221,16 @@ impl<'a> Swapper<'a> {
       "".to_string()
     };
 
+    let wl_copy_arg = if self.wl_copy { "--wl-copy" } else { "" };
+
     let pane_command = format!(
-        "tmux capture-pane -J -t {active_pane_id} -p{scroll_params} | tail -n {height} | {dir}/target/release/thumbs -f '%U:%H' -t {tmp} {args}; tmux swap-pane -t {active_pane_id}; {zoom_command} tmux wait-for -S {signal}",
+        "tmux capture-pane -J -t {active_pane_id} -p{scroll_params} | tail -n {height} | {dir}/target/release/thumbs -f '%U:%H' -t {tmp} {wl_copy_arg} {args}; tmux swap-pane -t {active_pane_id}; {zoom_command} tmux wait-for -S {signal}",
         active_pane_id = active_pane_id,
         scroll_params = scroll_params,
         height = self.active_pane_height.unwrap_or(i32::MAX),
         dir = self.dir,
         tmp = TMP_FILE,
+        wl_copy_arg = wl_copy_arg,
         args = args.join(" "),
         zoom_command = zoom_command,
         signal = self.signal
@@ -451,6 +461,7 @@ mod tests {
       "".to_string(),
       "".to_string(),
       false,
+      false,
     );
 
     swapper.capture_active_pane();
@@ -473,6 +484,7 @@ mod tests {
       "".to_string(),
       "".to_string(),
       "".to_string(),
+      false,
       false,
     );
 
@@ -499,6 +511,7 @@ mod tests {
       user_command,
       upcase_command,
       multi_command,
+      false,
       false,
     );
 
@@ -562,6 +575,12 @@ fn app_args<'a>() -> clap::ArgMatches<'a> {
         .long("osc52")
         .short("o"),
     )
+    .arg(
+      Arg::with_name("wl_copy")
+        .help("Copy the hint to the wayland clipboard")
+        .long("wl-copy")
+        .short("w"),
+    )
     .get_matches()
 }
 
@@ -572,6 +591,7 @@ fn main() -> std::io::Result<()> {
   let upcase_command = args.value_of("upcase_command").unwrap();
   let multi_command = args.value_of("multi_command").unwrap();
   let osc52 = args.is_present("osc52");
+  let wl_copy = args.is_present("wl_copy");
 
   if dir.is_empty() {
     panic!("Invalid tmux-thumbs execution. Are you trying to execute tmux-thumbs directly?")
@@ -585,6 +605,7 @@ fn main() -> std::io::Result<()> {
     upcase_command.to_string(),
     multi_command.to_string(),
     osc52,
+    wl_copy,
   );
 
   swapper.capture_active_pane();
