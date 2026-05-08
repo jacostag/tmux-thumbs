@@ -174,8 +174,8 @@ impl<'a> Swapper<'a> {
           }
 
           if name == "wl-copy" && value == "1" {
-+            return vec!["--wl-copy".to_string()];
-+          }
+             return vec!["--wl-copy".to_string()];
+          }
 
           let string_params = vec![
             "alphabet",
