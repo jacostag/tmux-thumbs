@@ -136,6 +136,12 @@ fn app_args<'a>() -> clap::ArgMatches<'a> {
         .short("t")
         .takes_value(true),
     )
+    .arg(
+      Arg::with_name("wl_copy")
+        .help("Copy the hint to the wayland clipboard")
+        .long("wl-copy")
+        .short("w"),
+    )
     .get_matches()
 }
 
@@ -145,6 +151,7 @@ fn main() {
   let alphabet = args.value_of("alphabet").unwrap();
   let position = args.value_of("position").unwrap();
   let target = args.value_of("target");
+  let wl_copy = args.is_present("wl_copy");
   let multi = args.is_present("multi");
   let reverse = args.is_present("reverse");
   let unique = args.is_present("unique");
@@ -210,6 +217,9 @@ fn main() {
       .collect::<Vec<_>>()
       .join("\n");
 
+    
+
+    
     if let Some(target) = target {
       let mut file = OpenOptions::new()
         .create(true)
